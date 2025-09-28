@@ -1,6 +1,6 @@
 # PhishRadar
 
-*PhishRadar* is a Flask-based backend designed to detect phishing attempts in URLs, domains, emails/text, and attachments.This project is built for *demo and educational purposes* and provides heuristic checks, optional VirusTotal integration, and a basic ML-based classifier for phishing detection.
+*PhishRadar* is a Flask-based backend designed to detect phishing attempts in URLs, domains, emails/text, and attachments. This project is built for *demo and educational purposes* and provides heuristic checks, optional VirusTotal integration, and a basic ML-based classifier for phishing detection.
 
 ---
 
