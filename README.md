@@ -46,6 +46,6 @@ This project is built for *demo and educational purposes* and provides heuristic
    ```bash
    python app.py
    http://127.0.0.1:5000
-6.*License*
+6. *License*
 This project is licensed under the MIT License.
 
