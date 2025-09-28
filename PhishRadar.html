@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishRadar - Advanced Threat Detection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0a0b;
+            color: #ffffff;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Animated background grid */
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(59, 130, 246, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59, 130, 246, 0.08) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            z-index: 1;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Header */
+        .header {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem 2rem;
+            background: rgba(15, 15, 16, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #10b981;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        /* Main container */
+        .main-container {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Hero section */
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: #64748b;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            line-height: 1.6;
+        }
+
+        /* Scanner card */
+        .scanner-card {
+            background: linear-gradient(145deg, rgba(15, 15, 16, 0.8), rgba(30, 30, 32, 0.6));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 
+                0 20px 25px -5px rgba(0, 0, 0, 0.3),
+                0 10px 10px -5px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scanner-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-select, .form-input, .form-textarea {
+            width: 100%;
+            background: rgba(30, 30, 32, 0.8);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 1rem;
+            color: #ffffff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-select:focus, .form-input:focus, .form-textarea:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .scan-button {
+            width: 100%;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border: none;
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scan-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        .scan-button:active {
+            transform: translateY(0);
+        }
+
+        /* Results section */
+        .results-section {
+            display: none;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .results-card {
+            background: linear-gradient(145deg, rgba(15, 15, 16, 0.9), rgba(30, 30, 32, 0.7));
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 2.5rem;
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .threat-level {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .threat-score {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-right: 0.5rem;
+        }
+
+        .threat-label {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .threat-message {
+            text-align: center;
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        /* Threat level colors */
+        .safe {
+            color: #10b981;
+        }
+        .safe .threat-message {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .warning {
+            color: #f59e0b;
+        }
+        .warning .threat-message {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .danger {
+            color: #ef4444;
+        }
+        .danger .threat-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        /* Analysis details */
+        .analysis-section {
+            background: rgba(20, 20, 22, 0.6);
+            border-radius: 16px;
+            border: 1px solid rgba(59, 130, 246, 0.1);
+        }
+
+        .analysis-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+        }
+
+        .analysis-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        .analysis-content {
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .analysis-content.expanded {
+            max-height: 500px;
+            padding: 1.5rem;
+        }
+
+        .analysis-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.05);
+        }
+
+        .analysis-item:last-child {
+            border-bottom: none;
+        }
+
+        .analysis-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .analysis-text {
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-card {
+            background: rgba(20, 20, 22, 0.6);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid rgba(59, 130, 246, 0.1);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #3b82f6;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+            }
+            
+            .main-container {
+                padding: 1rem;
+            }
+            
+            .scanner-card, .results-card {
+                padding: 1.5rem;
+            }
+            
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .threat-score {
+                font-size: 3rem;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Pulse animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Scanning animation */
+        .scanning {
+            position: relative;
+        }
+
+        .scanning::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.2), transparent);
+            animation: scanning 2s linear infinite;
+        }
+
+        @keyframes scanning {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">🛡️</div>
+            <div class="logo-text">PhishRadar</div>
+        </div>
+        <div class="status-indicator">
+            <div class="status-dot"></div>
+            <span>System Online</span>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Hero Section -->
+        <div class="hero">
+            <h1 class="hero-title">Advanced Threat Detection</h1>
+            <p class="hero-subtitle">
+                Protect your organization with AI-powered phishing detection. 
+                Analyze URLs, messages, and domains in real-time to stay ahead of evolving threats.
+            </p>
+        </div>
+
+        <!-- Scanner Card -->
+        <div class="scanner-card">
+            <form id="scanForm">
+                <div class="form-group">
+                    <label class="form-label" for="scanType">Detection Type</label>
+                    <select class="form-select" id="scanType">
+                        <option value="url">URL Analysis</option>
+                        <option value="email">Email Content</option>
+                        <option value="domain">Domain Reputation</option>
+                        <option value="attachment">File Attachment</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="inputContent" id="inputLabel">Enter URL to analyze</label>
+                    <textarea class="form-textarea" id="inputContent" placeholder="https://example.com" rows="4"></textarea>
+                    <input type="file" class="form-input hidden" id="fileInput" accept=".pdf,.doc,.docx,.zip,.exe">
+                </div>
+
+                <button type="submit" class="scan-button" id="scanBtn">
+                    <span id="btnText">🔍 Analyze Threat</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="resultsSection">
+            <div class="results-card">
+                <div class="threat-level" id="threatLevel">
+                    <div class="threat-score" id="threatScore">0</div>
+                    <div>
+                        <div class="threat-label" id="threatLabel">ANALYZING</div>
+                    </div>
+                </div>
+
+                <div class="threat-message" id="threatMessage">
+                    Scanning for potential threats...
+                </div>
+
+                <div class="analysis-section">
+                    <div class="analysis-header" onclick="toggleAnalysis()">
+                        <h3 class="analysis-title">📊 Detailed Analysis</h3>
+                        <span id="toggleIcon">▼</span>
+                    </div>
+                    <div class="analysis-content" id="analysisContent">
+                        <!-- Analysis items will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="scanTime">--</div>
+                    <div class="stat-label">Scan Time (ms)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="dbChecks">--</div>
+                    <div class="stat-label">Database Checks</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="aiConfidence">--</div>
+                    <div class="stat-label">AI Confidence</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced analysis database
+        const analysisDatabase = {
+            high: [
+                { icon: '🚨', text: 'Domain registered within the last 7 days', type: 'danger' },
+                { icon: '🔗', text: 'Contains suspicious URL redirects', type: 'danger' },
+                { icon: '📧', text: 'Sender reputation score below threshold', type: 'danger' },
+                { icon: '🏷️', text: 'Uses deceptive display names', type: 'warning' },
+                { icon: '🔐', text: 'Invalid or expired SSL certificate', type: 'danger' },
+                { icon: '📍', text: 'Hosting location flagged for malicious activity', type: 'danger' }
+            ],
+            medium: [
+                { icon: '⚠️', text: 'Domain contains typosquatting patterns', type: 'warning' },
+                { icon: '🔍', text: 'Similar phishing attempts detected recently', type: 'warning' },
+                { icon: '📨', text: 'Unusual email headers detected', type: 'warning' },
+                { icon: '🌐', text: 'Uses URL shortening services', type: 'warning' },
+                { icon: '📋', text: 'Content matches known phishing templates', type: 'warning' }
+            ],
+            low: [
+                { icon: '✅', text: 'Domain has established reputation', type: 'safe' },
+                { icon: '🔒', text: 'Valid SSL certificate detected', type: 'safe' },
+                { icon: '🏢', text: 'Sender domain matches organization', type: 'safe' },
+                { icon: '📈', text: 'High sender reputation score', type: 'safe' },
+                { icon: '🛡️', text: 'No malicious patterns detected', type: 'safe' }
+            ]
+        };
+
+        const form = document.getElementById('scanForm');
+        const scanType = document.getElementById('scanType');
+        const inputContent = document.getElementById('inputContent');
+        const fileInput = document.getElementById('fileInput');
+        const inputLabel = document.getElementById('inputLabel');
+        const scanBtn = document.getElementById('scanBtn');
+        const btnText = document.getElementById('btnText');
+        const resultsSection = document.getElementById('resultsSection');
+        const threatLevel = document.getElementById('threatLevel');
+        const threatScore = document.getElementById('threatScore');
+        const threatLabel = document.getElementById('threatLabel');
+        const threatMessage = document.getElementById('threatMessage');
+        const analysisContent = document.getElementById('analysisContent');
+
+        // Update UI based on scan type
+        scanType.addEventListener('change', function() {
+            const type = this.value;
+            inputContent.classList.remove('hidden');
+            fileInput.classList.add('hidden');
+
+            switch(type) {
+                case 'url':
+                    inputLabel.textContent = 'Enter URL to analyze';
+                    inputContent.placeholder = 'https://example.com';
+                    break;
+                case 'email':
+                    inputLabel.textContent = 'Paste email content';
+                    inputContent.placeholder = 'Paste the suspicious email content here...';
+                    break;
+                case 'domain':
+                    inputLabel.textContent = 'Enter domain name';
+                    inputContent.placeholder = 'example.com';
+                    break;
+                case 'attachment':
+                    inputLabel.textContent = 'Upload file for analysis';
+                    inputContent.classList.add('hidden');
+                    fileInput.classList.remove('hidden');
+                    break;
+            }
+        });
+
+        // Form submission
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await performScan();
+        });
+
+        async function performScan() {
+    // Show scanning UI
+    showScanningState();
+
+    const type = scanType.value; // 'url', 'email', 'domain', 'attachment'
+    const inputValue = inputContent.value.trim();
+
+    // For attachment, use formdata
+    try {
+        let resJson = null;
+        if (type === 'attachment') {
+            const file = fileInput.files[0];
+            if (!file) {
+                alert("Please choose a file to upload");
+                scanBtn.disabled = false;
+                return;
+            }
+            const fd = new FormData();
+            fd.append("type", "attachment");
+            fd.append("file", file);
+            const resp = await fetch("http://127.0.0.1:5000/api/scan", {
+                method: "POST",
+                body: fd
+            });
+            resJson = await resp.json();
+            // Map to the UI format
+            displayResults({
+                score: resJson.vt && resJson.vt.data ? 80 : 10,
+                level: resJson.vt && resJson.vt.data ? 'danger' : 'warning',
+                message: "Attachment scanned (see detailed VT result if API key provided)",
+                analysisItems: [
+                    {icon: '🧾', text: 'File SHA256: ' + resJson.sha256, type: 'warning'},
+                    ...(resJson.vt ? [{icon:'🛡️', text:'VirusTotal included', type:'danger'}] : [])
+                ],
+                scanTime: resJson.scanTime || '--',
+                dbChecks: resJson.vt ? 10 : 2,
+                aiConfidence: '--'
+            });
+            return;
+        }
+
+        // Non-file POST
+        const payload = {
+            type: type,
+            content: inputValue
+        };
+
+        const resp = await fetch("http://127.0.0.1:5000/api/scan", {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify(payload)
+        });
+
+        if (!resp.ok) {
+            const err = await resp.json();
+            console.error("Scan error", err);
+            alert("Scan failed: " + (err.error || resp.statusText));
+            scanBtn.disabled = false;
+            btnText.textContent = '🔍 Analyze Threat';
+            scanBtn.classList.remove('scanning');
+            return;
+        }
+
+        const data = await resp.json();
+        // The backend returns an object compatible with existing displayResults
+        displayResults(data);
+
+    } catch (e) {
+        console.error(e);
+        alert("Error during scan: " + e.message);
+        // reset UI
+        btnText.textContent = '🔍 Analyze Threat';
+        scanBtn.disabled = false;
+        scanBtn.classList.remove('scanning');
+    }
+}
+        function showScanningState() {
+            btnText.textContent = '🔄 Analyzing...';
+            scanBtn.disabled = true;
+            scanBtn.classList.add('scanning');
+            resultsSection.style.display = 'block';
+            
+            // Animate threat score counting up
+            animateScore(0);
+        }
+
+        function generateResults(score, scanTime) {
+            let level, message, analysisItems;
+            
+            if (score >= 75) {
+                level = 'danger';
+                message = '🚨 HIGH RISK - This content shows strong indicators of a phishing attempt';
+                analysisItems = getRandomItems(analysisDatabase.high, 3, 5);
+            } else if (score >= 40) {
+                level = 'warning';
+                message = '⚠️ MEDIUM RISK - Suspicious patterns detected, proceed with caution';
+                analysisItems = getRandomItems([...analysisDatabase.medium, ...analysisDatabase.high], 2, 4);
+            } else {
+                level = 'safe';
+                message = '✅ LOW RISK - Content appears legitimate with no major threats detected';
+                analysisItems = getRandomItems(analysisDatabase.low, 2, 3);
+            }
+            
+            return {
+                score,
+                level,
+                message,
+                analysisItems,
+                scanTime: Math.round(scanTime),
+                dbChecks: Math.floor(Math.random() * 15) + 8,
+                aiConfidence: Math.floor(Math.random() * 20) + 80
+            };
+        }
+
+        function getRandomItems(array, min, max) {
+            const count = Math.floor(Math.random() * (max - min + 1)) + min;
+            const shuffled = [...array].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        }
+
+        function displayResults(results) {
+            // Reset button
+            btnText.textContent = '🔍 Analyze Threat';
+            scanBtn.disabled = false;
+            scanBtn.classList.remove('scanning');
+            
+            // Update threat level
+            threatLevel.className = `threat-level ${results.level}`;
+            threatLabel.textContent = results.level.toUpperCase() + ' RISK';
+            threatMessage.textContent = results.message;
+            threatMessage.className = `threat-message ${results.level}`;
+            
+            // Animate score
+            animateScore(results.score);
+            
+            // Update stats
+            document.getElementById('scanTime').textContent = results.scanTime;
+            document.getElementById('dbChecks').textContent = results.dbChecks;
+            document.getElementById('aiConfidence').textContent = results.aiConfidence + '%';
+            
+            // Generate analysis items
+            generateAnalysisItems(results.analysisItems);
+        }
+
+        function animateScore(targetScore) {
+            let currentScore = 0;
+            const increment = targetScore / 50;
+            const timer = setInterval(() => {
+                currentScore += increment;
+                if (currentScore >= targetScore) {
+                    currentScore = targetScore;
+                    clearInterval(timer);
+                }
+                threatScore.textContent = Math.round(currentScore);
+            }, 30);
+        }
+
+        function generateAnalysisItems(items) {
+            const html = items.map(item => `
+                <div class="analysis-item">
+                    <div class="analysis-icon ${item.type}" style="background: ${getIconColor(item.type)};">
+                        ${item.icon}
+                    </div>
+                    <div class="analysis-text">${item.text}</div>
+                </div>
+            `).join('');
+            
+            analysisContent.innerHTML = html;
+        }
+
+        function getIconColor(type) {
+            switch(type) {
+                case 'danger': return 'rgba(239, 68, 68, 0.2)';
+                case 'warning': return 'rgba(245, 158, 11, 0.2)';
+                case 'safe': return 'rgba(16, 185, 129, 0.2)';
+                default: return 'rgba(59, 130, 246, 0.2)';
+            }
+        }
+
+        function toggleAnalysis() {
+            const content = analysisContent;
+            const icon = document.getElementById('toggleIcon');
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                icon.textContent = '▼';
+            } else {
+                content.classList.add('expanded');
+                icon.textContent = '▲';
+            }
+        }
+    </script>
+</body>
+</html>

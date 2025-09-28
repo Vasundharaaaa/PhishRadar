@@ -1,0 +1,6 @@
+flask
+flask-cors
+requests
+python-whois
+transformers>=4.0.0
+torch         # transformers usually needs torch; if you prefer CPU-only install 'torch' or 'cpu-only' wheel
