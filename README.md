@@ -36,8 +36,7 @@
     .\venv\Scripts\Activate.ps1
 3. *Activate the virtual environment*
    ```bash
-   git clone https://github.com/Vasundharaaaa/PhishRadar.git
-   cd PhishRadar
+   .\venv\Scripts\Activate.ps1
 4. *Install required dependencies*
     ```bash
     pip install -r requirements.txt
