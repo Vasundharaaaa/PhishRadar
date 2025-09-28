@@ -38,7 +38,10 @@
 
 3. *Activate the virtual environment*
    ```bash
+   PowerShell:
    .\venv\Scripts\Activate.ps1
+   CMD:
+   venv\Scripts\Activate.bat
    
 4. *Install required dependencies*
     ```bash
