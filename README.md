@@ -31,19 +31,24 @@
    ```bash
    git clone https://github.com/Vasundharaaaa/PhishRadar.git
    cd PhishRadar
+   
 2. *Create a virtual environment*
     ```bash
-    .\venv\Scripts\Activate.ps1
+    python -m venv venv
+
 3. *Activate the virtual environment*
    ```bash
    .\venv\Scripts\Activate.ps1
+   
 4. *Install required dependencies*
     ```bash
     pip install -r requirements.txt
+    
 5. *Usage*
    ```bash
    python app.py
    http://127.0.0.1:5000
+   
 6. *License*
 This project is licensed under the MIT License.
 
